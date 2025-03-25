@@ -3,8 +3,8 @@ from rest_framework_simplejwt.exceptions import AuthenticationFailed
 
 class CookieJWTAuthentication(JWTAuthentication):
     def authenticate(self, request):
-        token = request.COOKIES.get("access_token")
-        
+        print("TOKEN GOT : ", request.COOKIES)
+        token = request.COOKIES.get("arraiv_at")
         if not token:
             return None
         try:

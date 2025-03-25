@@ -35,14 +35,16 @@ class LoginView(APIView):
             access_token = str(refresh.access_token)
 
             response = Response({
-                "user": CustomUserSerializer(user).data
+                "user": CustomUserSerializer(user).data,
+                "arraiv_at_src": access_token,
+                "arraiv_rt_src": str(refresh),
             }, status.HTTP_200_OK)
 
-            response.set_cookie(key="access_token", value=access_token,
-                                httponly=True, secure=True, samesite="None")
+            # response.set_cookie(key="arraiv_at_src", value=access_token,
+            #                     httponly=True, secure=True, samesite="None")
             
-            response.set_cookie(key="refresh_token", value=str(refresh),
-                                httponly=True, secure=True, samesite="None")
+            # response.set_cookie(key="arraiv_rt_src", value=str(refresh),
+            #                     httponly=True, secure=True, samesite="None")
 
             return response
         return Response( serializer.errors, status=status.HTTP_400_BAD_REQUEST)
