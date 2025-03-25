@@ -1,22 +1,28 @@
 "use client";
 import { useState } from "react";
+import axios from "axios"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const res = await fetch("/api/auth", {
-      method: "POST",
-      body: JSON.stringify({ email, password }),
-    });
+	e.preventDefault();
 
-    if (res.ok) {
-      window.location.href = "/"; // Redirect after login
-    } else {
-      console.error("Login failed");
-    }
+	try {
+		//TODO: check if user is already logged in? check this by finding presence of access_token if yes then use it to login, if no find refresh
+		// if found use it to get a access token if no the proceed to fetch new token pair
+		const response = await axios.post("/api/auth/login", {email, password}, {withCredentials:true})
+		
+		//MUST INCLUDE withCredentials with all requests even the first login req!otherwise cookies wont be written
+		// const response = await axios.post("http://127.0.0.1:8000/api/users/login/", {email, password}, {withCredentials:true})
+		if (response.status === 200){
+			console.log("Response for BE : ", response.data)
+		}
+	}
+	catch (e) {
+		console.log("Err logging in : ", e)
+	}
   };
 
   return (

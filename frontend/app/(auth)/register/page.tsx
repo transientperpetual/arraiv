@@ -1,24 +1,39 @@
 "use client";
 import { useState } from "react";
+import axios from 'axios'
+import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
+
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
   const handleRegister  = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("making req")
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      body: JSON.stringify({ email, username, password }),
-    });
 
-    if (res.ok) {
-        console.error("Registration Successful");
-    } else {
-      console.error("Registration failedd");
-    }
+	if(email==="" || username ==="" || password==="") {
+		return
+	}
+	
+	try {
+		const response = await axios.post("/api/auth/register/", {
+			email,
+			username,
+			password
+		});
+
+		console.log("Reg successful")
+
+		console.log("Response for BE : ", response.data)
+		//TODO - verify otp, redirect to otp verification page.
+		router.push("/verify-otp/")
+
+	} catch (e) {
+		console.log("Reg failed : ", e)
+	}
+
   };
 
   return (
