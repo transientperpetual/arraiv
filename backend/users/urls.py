@@ -1,10 +1,19 @@
 from django.urls import path
-from .views import UserInfoView, UserRegistrationView, LoginView, LogoutView, CookieTokenRefreshView
+from users import views
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
 
 urlpatterns = [
-    path("user-info/", UserInfoView.as_view(), name="user-info"),
-    path("register/", UserRegistrationView.as_view(), name="register"),
-    path("login/", LoginView.as_view(), name="user-login"),
-    path("logout/", LogoutView.as_view(), name="user-logout"),
-    path("refresh/", CookieTokenRefreshView.as_view(), name="token-refresh"),
+    path('register/', views.RegisterUserView.as_view(), name='register'),
+    path('verify-otp/', views.VerifyOTPView.as_view(), name='verify-otp'),
+    path('resend-otp/', views.ResendOTPView.as_view(), name='resend-otp'),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('user/', views.ArraivUserList.as_view()),
+    path('user/<int:pk>', views.ArraivUserRetrieveUpdateDestroy.as_view()),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('verifytoken/', TokenVerifyView.as_view(), name='token_verify'),
+    
+    path('google/login/', views.google_login, name='google_login'),
+    
+    path("api/logout/", views.LogoutView.as_view(), name="logout"),
+    path("test/", views.TestView.as_view(), name="test-view"),
 ]

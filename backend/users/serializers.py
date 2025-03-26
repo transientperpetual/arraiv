@@ -1,30 +1,52 @@
-from rest_framework.serializers import ModelSerializer, Serializer
-from .models import CustomUser
 from rest_framework import serializers
-from django.contrib.auth import authenticate
+from rest_framework.serializers import ModelSerializer, Serializer
+from .models import ArraivUser
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-class CustomUserSerializer(ModelSerializer):
+
+class ArraivUserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CustomUser
-        fields = ("id", "email", "username")
-        
+        model = ArraivUser
+        fields = ['first_name', 'email', 'password']
+        extra_kwargs = {"password": {"write_only": True}}
 
+    def create(self, validated_data):
+        user = ArraivUser.objects.create_user(**validated_data) 
+        return user
+
+#by default, the TokenObtainPairSerializer uses the username field to authenticate the user.
+#Hence we need to override the validate method to use the email field instead.
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        email = attrs.get("email")
+        password = attrs.get("password")
+
+        if not email or not password:
+            raise serializers.ValidationError("Email & password required, or login with Google")
+
+        try:
+            user = ArraivUser.objects.get(email=email)
+        except ArraivUser.DoesNotExist:
+            raise serializers.ValidationError("Email not registered.")
+
+        if not user.is_active:
+            raise serializers.ValidationError("User account is inactive.")
+    
+        if not user.is_email_verified:  # Restrict login for unverified users
+            raise serializers.ValidationError("Email not verified")
+
+        if not user.check_password(password):
+            raise serializers.ValidationError("Incorrect password.")
+
+        attrs["username"] = user.email 
+        return super().validate(attrs)
+    
 class RegisterUserSerialzier(ModelSerializer):
     class Meta:
-        model = CustomUser
+        model = ArraivUser
         fields = ("email", "username", "password")
         extra_kwargs = {"password":{"write_only": True}}
         
     def create(self, validated_data):
-        user = CustomUser.objects.create_user(**validated_data)
+        user = ArraivUser.objects.create_user(**validated_data)
         return user
-    
-class LoginUserSerializer(Serializer):
-    email = serializers.EmailField(required=True)
-    password = serializers.CharField(write_only=True)
-    
-    def validate(self, data):
-        user = authenticate(**data)
-        if user and user.is_active:
-            return user
-        raise serializers.ValidationError("Incorrect creds")

@@ -2,25 +2,27 @@
 import { useState } from "react";
 import axios from 'axios'
 import { useRouter } from "next/navigation";
+import { NextResponse } from "next/server";
 
 export default function RegisterPage() {
 
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
+  const [first_name, setFirstname] = useState("");
   const [password, setPassword] = useState("");
 
   const handleRegister  = async (e: React.FormEvent) => {
     e.preventDefault();
 
-	if(email==="" || username ==="" || password==="") {
+	if(first_name === "" || email === "" || password === "") {
 		return
 	}
 	
 	try {
 		const response = await axios.post("/api/auth/register/", {
+			first_name,
 			email,
-			username,
 			password
 		});
 
@@ -42,29 +44,41 @@ export default function RegisterPage() {
 				onSubmit={handleRegister}
 				className="p-8 flex flex-col rounded-sm bg-white shadow-md" 
 			>
-				<label className="text-gray-600 text-sm pb-1">Email</label>
+
+				<label className="text-gray-600 text-sm pb-1">First name</label>
 				<input
 					className="text-gray-700 text-sm border-2 p-1 border-gray-400 rounded-sm"
-					type="email"
-					value={email}
+					type="text"
+					value={first_name}
 					required
 					onChange={(e) => {
-						setEmail(e.target.value);
+						setFirstname(e.target.value);
 					}}
 				/>
 				<br />
 
-                <label className="text-gray-600 text-sm pb-1">Username</label>
+                {/* <label className="text-gray-600 text-sm pb-1">Username</label>
 				<input
 					className="text-gray-700 text-sm border-2 p-1 border-gray-400 rounded-sm"
-					type="username"
+					type="text"
 					value={username}
 					required
 					onChange={(e) => {
 						setUsername(e.target.value);
 					}}
 				/>
-				<br />
+				<br /> */}
+					<label className="text-gray-600 text-sm pb-1">Email</label>
+					<input
+						className="text-gray-700 text-sm border-2 p-1 border-gray-400 rounded-sm"
+						type="email"
+						value={email}
+						required
+						onChange={(e) => {
+							setEmail(e.target.value);
+						}}
+					/>
+					<br />
 
 				<label className="text-gray-600 text-sm pb-1" >Password</label>
 				<input
