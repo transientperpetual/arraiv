@@ -10,8 +10,8 @@ export default function Home() {
   useEffect(()=>{
     const getUserInfo = async () => {
       try {
+        // const response = await axios.get("/api/user")
         const response = await axios.get("/api/user", {withCredentials: true})
-        // const response = await axios.get("http://localhost:8000/api/users/user-info/", {withCredentials: true})
         console.log("RESPONSE : ", response)
         // setUser(response.data.username)
       }

@@ -8,16 +8,15 @@ export async function POST(req: NextRequest) {
 
     //TODO : handle this on page.tsx
     // Validate input 
+    console.log("e: ", email, "p : ", password)
     if (!email || !password) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
     }
 
-    // Send login request to Django backend
-
-    const backendResponse = await axios.post(`${process.env.BACKEND}/users/login/`, {email, password})
-
+    const res = await axios.post(`${process.env.BACKEND}token/`, {email, password})
+    console.log("res: ", res)
     // Extract tokens from the response
-    const { arraiv_at_src, arraiv_rt_src } = backendResponse.data;
+    const { arraiv_at_src, arraiv_rt_src } = res.data;
 
     if (!arraiv_at_src || !arraiv_rt_src) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
@@ -29,7 +28,7 @@ export async function POST(req: NextRequest) {
       secure:true, 
       sameSite: "none", // TODO : set to strict in prod?
       path: "/",
-      maxAge: 60 * 60, // Expires in one hour
+      maxAge: 900, // Expires in 15 minutes
     });
 
     cookieStore.set('arraiv_rt', arraiv_rt_src, {
@@ -37,11 +36,11 @@ export async function POST(req: NextRequest) {
       secure: true,
       sameSite: "none", // TODO : set to strict in prod?
       path: "/",
-      maxAge: 60 * 60 * 24 * 30, // Expires in 30 days
+      maxAge: 604800, // Expires in 7 days
     });
 
     // Send response to client
-    return NextResponse.json(backendResponse.data.user, { status: backendResponse.status });
+    return NextResponse.json({message: "User login authenticated successfully"}, { status: res.status });
 
   } catch (error) {
     return NextResponse.json({ error: "Could not login" }, { status: 500 });

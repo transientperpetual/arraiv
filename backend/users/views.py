@@ -12,16 +12,11 @@ from django.core.mail import send_mail
 from rest_framework.response import Response
 from django.conf import settings
 from django.http import JsonResponse
-from django.contrib.auth import get_user_model, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
 from django.shortcuts import render, redirect
-from django.urls import reverse_lazy
-from django.contrib import messages
-from django.views.decorators.csrf import csrf_exempt
 from urllib.parse import urlencode
 import requests
 from rest_framework import status
-from django.contrib.auth import login
 import environ
 from rest_framework_simplejwt.tokens import RefreshToken
 from .authentication import CookieJWTAuthentication
@@ -75,7 +70,6 @@ class VerifyOTPView(APIView):
     def post(self, request):
         email = request.data.get("email")
         otp = request.data.get("otp")
-        print("OTP VERIFICATION", email, otp)
 
         if not email or not otp:
             return JsonResponse({"error": "Email and OTP required"}, status=400)
@@ -83,8 +77,7 @@ class VerifyOTPView(APIView):
         try:
             user = ArraivUser.objects.get(email=email)
         except ArraivUser.DoesNotExist:
-            print("USER NOT DOUND")
-            return JsonResponse({"error": "User not found"}, status=400)
+            return JsonResponse({"error": "Account not found for this email"}, status=400)
 
         # Check OTP expiration (valid for 10 minutes)
         if user.otp != otp or (now() - user.otp_created_at).total_seconds() > 600:
@@ -96,10 +89,11 @@ class VerifyOTPView(APIView):
         user.otp_created_at = None
         user.save()
 
-        return JsonResponse({"message": "Email successfully verified!"})
+        return JsonResponse({"message": "Email successfully verified!"}, status=200)
 
 
 class ResendOTPView(APIView):
+    permission_classes=[AllowAny]
     def post(self, request):
         email = request.data.get("email")
 
@@ -112,7 +106,7 @@ class ResendOTPView(APIView):
             return JsonResponse({"error": "User not found"}, status=400)
 
         if user.is_email_verified:
-            return JsonResponse({"message": "Email is already verified."})
+            return JsonResponse({"message": "Email is already verified."}, status=400)
 
         user.generate_otp()
 
@@ -202,7 +196,19 @@ def google_callback(request):
     })
 
     
+class CustomTokenObtainPairView(TokenObtainPairView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        
+        if response.status_code == 200:
+            response.data = {
+                "arraiv_at_src": response.data["access"],
+                "arraiv_rt_src": response.data["refresh"]
+            }
+        
+        return response
     
+
 
 class ArraivUserList(ListAPIView):
     queryset = ArraivUser.objects.all()
@@ -232,9 +238,9 @@ class LogoutView(APIView):
             token.blacklist()
 
             # Clear cookies
-            response = Response({"message": "Logged out successfully"}, status=200)
             response.delete_cookie("access_token")
             response.delete_cookie("refresh_token")
+            response = Response({"message": "Logged out successfully"}, status=200)
 
             return response
         except Exception as e:

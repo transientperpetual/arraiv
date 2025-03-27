@@ -1,10 +1,14 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios"
+import { useRouter, useSearchParams } from "next/navigation"
 
 export default function LoginPage() {
+	const searchParams = useSearchParams()
+	const emailInParams = searchParams.get('email') || "";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
 	e.preventDefault();
@@ -12,18 +16,33 @@ export default function LoginPage() {
 	try {
 		//TODO: check if user is already logged in? check this by finding presence of access_token if yes then use it to login, if no find refresh
 		// if found use it to get a access token if no the proceed to fetch new token pair
+		//TODO add session refresh via middleware.
 		const response = await axios.post("/api/auth/login", {email, password}, {withCredentials:true})
+
 		
-		//MUST INCLUDE withCredentials with all requests even the first login req!otherwise cookies wont be written
-		// const response = await axios.post("http://127.0.0.1:8000/api/users/login/", {email, password}, {withCredentials:true})
-		if (response.status === 200){
-			console.log("Response for BE : ", response.data)
-		}
+		// //MUST INCLUDE withCredentials with all requests even the first login req!otherwise cookies wont be written
+		// // const response = await axios.post("http://127.0.0.1:8000/api/users/login/", {email, password}, {withCredentials:true})
+		// if (response.status === 200){
+		// 	console.log("Response for BE : ", response.data)
+		// }
+
+		//TODO:
+		//if user otp is not verified then refirect them to otp verification page with email prefilled.
+		// if (true){
+		// 	const queryParams = new URLSearchParams({ email }).toString();
+		// 	router.push(`/verify-otp?${queryParams}`);
+		// }
+		
+			// router.push("/");
 	}
 	catch (e) {
 		console.log("Err logging in : ", e)
 	}
   };
+
+    useEffect(()=>{
+	  emailInParams && setEmail(emailInParams)
+	}, [])
 
   return (
     <div className="min-h-screen bg-gray-900 items-center flex flex-col justify-center">
