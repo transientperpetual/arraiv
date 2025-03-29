@@ -8,20 +8,21 @@ export async function POST(req: NextRequest) {
 
     //TODO : handle this on page.tsx
     // Validate input 
-    console.log("e: ", email, "p : ", password)
     if (!email || !password) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
     }
 
-    const res = await axios.post(`${process.env.BACKEND}token/`, {email, password})
-    console.log("res: ", res)
+    const res = await axios.post(`${process.env.BACKEND}/token/`, {email, password})
     // Extract tokens from the response
     const { arraiv_at_src, arraiv_rt_src } = res.data;
 
     if (!arraiv_at_src || !arraiv_rt_src) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
+
+    // console.log("res: ", res)
     
+    // Set httpOnly cookies in client
     const cookieStore = await cookies();
     cookieStore.set('arraiv_at', arraiv_at_src, {
       httpOnly: true,
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Send response to client
-    return NextResponse.json({message: "User login authenticated successfully"}, { status: res.status });
+    return NextResponse.json(res.data, { status: res.status });
 
   } catch (error) {
     return NextResponse.json({ error: "Could not login" }, { status: 500 });

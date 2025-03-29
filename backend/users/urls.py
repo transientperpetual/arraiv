@@ -10,7 +10,7 @@ urlpatterns = [
     path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('user/', views.ArraivUserList.as_view()),
     path('user/<int:pk>', views.ArraivUserRetrieveUpdateDestroy.as_view()),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('verifytoken/', TokenVerifyView.as_view(), name='token_verify'),
     
     path('google/login/', views.google_login, name='google_login'),

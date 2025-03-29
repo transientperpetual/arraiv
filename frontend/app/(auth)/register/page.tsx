@@ -27,9 +27,9 @@ export default function RegisterPage() {
       console.log("Response : ", res.data);
       //TODO - verify otp, redirect to otp verification page.
       const queryParams = new URLSearchParams({ email }).toString();
-			router.push(`/verify-otp?${queryParams}`);
-    } catch (e:any) {
-       if (e.response) {
+      router.push(`/verify-otp?${queryParams}`);
+    } catch (e: any) {
+      if (e.response) {
         console.error(
           "Request error:",
           e.response.data.error,
@@ -41,6 +41,14 @@ export default function RegisterPage() {
         console.error("Unexpected error:", e.message);
       }
     }
+  };
+
+  const handleLogin = () => {
+    router.push("/login");
+  };
+
+  const handleGoogleAuth = () => {
+    router.push("/google");
   };
 
   return (
@@ -100,6 +108,20 @@ export default function RegisterPage() {
           type="submit"
         >
           REGISTER 🥳
+        </button>
+
+        <button
+          onClick={handleGoogleAuth}
+          className="border-2 text-gray-800 p-1 rounded-sm hover:bg-gray-800 hover:text-gray-100"
+        >
+          Sign Up with Google
+        </button>
+        <p>Already have an account?</p>
+        <button
+          onClick={handleLogin}
+          className="border-2 text-gray-800 p-1 rounded-sm hover:bg-gray-800 hover:text-gray-100"
+        >
+          LOGIN
         </button>
       </form>
     </div>

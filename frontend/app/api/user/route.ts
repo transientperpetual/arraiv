@@ -4,18 +4,38 @@ import axios from 'axios'
 
 export async function GET(req:NextRequest) {
     try{
-        //TODO  : need not send the toke back in a cookie
-        const accessToken = req.cookies.get("arraiv_at")
+    const cookieStore = await cookies();
+        const accessToken : any = cookieStore.get("arraiv_at")
         console.log("BODY : ", accessToken)
-        const backendResponse = await axios.get(`${process.env.Backend}/users/user-info/`, { headers: {
-            Authorization: `Bearer ${accessToken}`, // Send token in Authorization header
-        }, 
-        withCredentials: true})
+        const res = await axios.get(`${process.env.BACKEND}/user`,
+        {   headers: {
+            Cookie: `arraiv_at=${accessToken.value}`,
+          }})
  
-        return NextResponse.json(backendResponse.data);
+        return NextResponse.json(res.data, { status: res.status });
+    } catch (e: any) {
+      if (e.response) {
+        return NextResponse.json(
+          { error: e.response.data },
+          { status: e.response.status }
+        );
+      }
+  
+      if (e.request) {
+        return NextResponse.json(
+          {
+            error:
+              "No response from the server. Please check your API or server status.",
+          },
+          { status: 500 }
+        );
+      }
+  
+      // Other unexpected errors
+      return NextResponse.json(
+        { error: "Unexpected error occurred." },
+        { status: 500 }
+      );
     }
-
-    catch (e) {
-        return NextResponse.json({ error: "Could not get data" }, { status: 500 });
-    }
-}
+  }
+  

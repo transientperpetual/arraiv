@@ -20,6 +20,7 @@ from rest_framework import status
 import environ
 from rest_framework_simplejwt.tokens import RefreshToken
 from .authentication import CookieJWTAuthentication
+from django.views.decorators.csrf import csrf_exempt
 
 # Initialize environ
 env = environ.Env(
@@ -122,7 +123,6 @@ class ResendOTPView(APIView):
         return JsonResponse({"message": "A new OTP has been sent to your email."})
     
     
-
 def google_login(request):
     base_url = "https://accounts.google.com/o/oauth2/v2/auth"
     params = {
@@ -134,6 +134,7 @@ def google_login(request):
         "access_type": "offline",
         # "prompt": "consent",
     }
+    print("new url : ", f"{base_url}?{urlencode(params)}")
     return redirect(f"{base_url}?{urlencode(params)}")
 
 
@@ -213,7 +214,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 class ArraivUserList(ListAPIView):
     queryset = ArraivUser.objects.all()
     serializer_class = ArraivUserSerializer
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
 class ArraivUserRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView):
