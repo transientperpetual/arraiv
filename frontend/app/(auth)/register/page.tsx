@@ -49,51 +49,9 @@ export default function RegisterPage() {
 
   // redirect to google login url
   const handleGoogleAuth = () => {
-    window.location.href = `http://127.0.0.1:8000/api/google/login/`;
+    window.location.href = `${process.env.NEXT_PUBLIC_BACKEND}/google/login/`;
   };
 
-  // exchange session_key for auth cookies
-  const handleGoogleToken = async (session_key: string) => {
-    try {
-      const res = await axios.post(
-        "/api/auth/google/",
-        {},
-        {
-          headers: {
-            Authorization: `${session_key}`,
-            // "X-CSRF-Token": csrf_token,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      console.log("Response : ", res.data);
-      // redirect
-      router.push("/");
-    } catch (e: any) {
-      if (e.response) {
-        console.error(
-          "Request error:",
-          e.response.data.error,
-          e.response.status
-        );
-      } else if (e.request) {
-        console.error("No response from server. Check API or network.");
-      } else {
-        console.error("Unexpected error:", e.message);
-      }
-    }
-  };
-
-  // if session_key is present in the URL then fetch auth cookies from backend
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const session_key = urlParams.get("session");
-    const csrf_token = urlParams.get("csrf");
-
-    if (session_key) {
-      handleGoogleToken(session_key);
-    }
-  }, []);
 
   return (
     <div className="min-h-screen bg-gray-900 items-center flex flex-col justify-center">

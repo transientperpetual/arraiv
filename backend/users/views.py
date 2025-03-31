@@ -127,7 +127,8 @@ class ResendOTPView(APIView):
 
         return JsonResponse({"message": "A new OTP has been sent to your email."})
     
-    
+
+# prepare and go to the google authentication url
 def google_login(request):
     state = secrets.token_urlsafe(32)  # Generate secure state
     cache.set(f"oauth_state:{state}", True, timeout= 180)  # Store state for 3 min
@@ -144,7 +145,8 @@ def google_login(request):
     return redirect(f"{base_url}?{urlencode(params)}")
 
 
-
+# google callback, code authentication and token generataion, storing them in session cache and sending a short lived key 
+# in a url to next js client.
 def google_callback(request):
     #verify the state 
     state = request.GET.get("state")
@@ -198,87 +200,38 @@ def google_callback(request):
     # Generate JWT tokens
     tokens = get_tokens_for_user(user)
 
-    # Redirect to Next.js API to handle cookie setting
-    next_server_url = env("NEXT_SERVER_URL") + "/register"
+    # Redirect to Next.js user page, it will then handle cookie setting
+    next_server_url = env("NEXT_SERVER_URL") + "/auth-redirect"
 
     # Generate a session token (random key)
     session_key = secrets.token_urlsafe(32)
     cache.set(f"session:{session_key}", tokens, timeout=30)
-
-    # csrf_token = secrets.token_urlsafe(16)
-
+  
     # Redirect to Next.js register page with session key and csrf token
-    # return redirect(f"{next_server_url}?session={session_key}&csrf={csrf_token}")
     return redirect(f"{next_server_url}?session={session_key}")
 
-    # response = requests.post(next_server_url, json=tokens)
-
-    # if response.status_code == 200:
-    #     return JsonResponse({"message": "User registered successfully"})
-    # else:
-    #     return JsonResponse({"error": "Failed to register user with Google"}, status=500)
-
-    # response = redirect(next_server_url)
-
-    # response.set_cookie(key="arraiv_at", value=tokens["arraiv_at_src"],
-    #                         httponly=True, secure=True, samesite="None")
-            
-    # response.set_cookie(key="arraiv_rt", value=str(tokens["arraiv_rt_src"]),
-    #                     httponly=True, secure=True, samesite="None")
-
-    # response.set_cookie(
-    #     "arraiv_at", tokens["arraiv_at_src"],
-    #     httponly=True, secure=True, samesite="None",
-    #     path="/", max_age=900
-    # )
-    # response.set_cookie(
-    #     "arraiv_rt", tokens["arraiv_rt_src"],
-    #     httponly=True, secure=True, samesite="None",
-    #     path="/", max_age=604800
-    # )
-
-    # return response
-
-
-    # return JsonResponse({
-    #     "message": "Google login successful",
-    #     "access_token": tokens['access'],
-    #     "refresh_token": tokens['refresh'],
-    #     "user": {
-    #         "email": user.email,
-    #         "first_name": user.first_name,
-    #     },
-    # })
 
 # TODO add request limiters here
-@csrf_exempt
-def exchange_token(request):
-    session_key = request.headers.get("Authorization")
-    if session_key is None:
-        return JsonResponse({"error": "Missing session  key"}, status=400)
+class ObtainTokenFromSessionView(APIView):
+    permission_classes=[AllowAny]
+    def post(self, request, format=None):
+        session_key = request.headers.get("Authorization")
+        if session_key is None:
+            return JsonResponse({"error": "Missing session  key"}, status=400)
 
-    # session_data = cache.get(temp_token)
-    session_data = cache.get(f"session:{session_key}")
+        # session_data = cache.get(temp_token)
+        session_data = cache.get(f"session:{session_key}")
 
-    if not session_data:
-        return JsonResponse({"error": "Invalid token"}, status=400)
+        if not session_data:
+            return JsonResponse({"error": "Invalid token"}, status=400)
 
-    try:
-        cache.delete(session_key)  # Invalidate temp session
-    except Exception as e:
-        print("Error deleting token from cache:", e)
+        try:
+            cache.delete(session_key)  # Invalidate temp session
+        except Exception as e:
+            print("Error deleting token from cache:", e)
 
-    return JsonResponse(session_data)
-
-    # return JsonResponse({
-    #     "message": "Google login successful",
-    #     "access_token": tokens['access'],
-    #     "refresh_token": tokens['refresh'],
-    #     "user": {
-    #         "email": user.email,
-    #         "first_name": user.first_name,
-    #     },
-    # })
+        return JsonResponse(session_data)
+    
 
     
 class CustomTokenObtainPairView(TokenObtainPairView):

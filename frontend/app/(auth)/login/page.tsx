@@ -39,6 +39,16 @@ export default function LoginPage() {
     }
   };
 
+    // redirect to google login url
+    const handleGoogleAuth = () => {
+      window.location.href = `${process.env.NEXT_PUBLIC_BACKEND}/google/login/`;
+    };
+
+    // redirect to register page
+    const handleRegister = () => {
+      router.push("/register");
+    };
+
   useEffect(() => {
     emailInParams && setEmail(emailInParams);
   }, []);
@@ -77,6 +87,20 @@ export default function LoginPage() {
           type="submit"
         >
           Login
+        </button>
+
+        <button
+          onClick={handleGoogleAuth}
+          className="border-2 text-gray-800 p-1 rounded-sm hover:bg-gray-800 hover:text-gray-100"
+        >
+          Sign In with Google
+        </button>
+        <p>Already have an account?</p>
+        <button
+          onClick={handleRegister}
+          className="border-2 text-gray-800 p-1 rounded-sm hover:bg-gray-800 hover:text-gray-100"
+        >
+          REGISTER
         </button>
       </form>
     </div>

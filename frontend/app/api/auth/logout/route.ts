@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export async function POST() {
   try {
     // Send logout request to Django backend
-    const res = await fetch(`${process.env.BACKEND}/users/logout/`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/users/logout/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",

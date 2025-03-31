@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
       }
       
-      const res = await axios.post(`${process.env.BACKEND}/token/`, {email, password})
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND}/token/`, {email, password})
       // Extract tokens from the response
       const { arraiv_at_src, arraiv_rt_src } = res.data;
       

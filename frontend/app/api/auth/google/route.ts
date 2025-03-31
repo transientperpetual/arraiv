@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   console.log("Session key ", session_key);
 
   const res = await axios.post(
-    `${process.env.BACKEND}/exchange-token/`,
+    `${process.env.NEXT_PUBLIC_BACKEND}/obtain-token/`,
     {},
     {
       headers: {

@@ -13,8 +13,9 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('verifytoken/', TokenVerifyView.as_view(), name='token_verify'),
     
+    #user signing up / in with google
     path('google/login/', views.google_login, name='google_login'),
-    path('exchange-token/', views.exchange_token, name='exchange_token'),
+    path('obtain-token/', views.ObtainTokenFromSessionView.as_view(), name='obtain_token'),
     
     path("logout/", views.LogoutView.as_view(), name="logout"),
     path("test/", views.TestView.as_view(), name="test-view"),

@@ -4,7 +4,7 @@ import axios from "axios";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const res = await axios.post(`${process.env.BACKEND}resend-otp/`, body);
+    const res = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND}resend-otp/`, body);
     return NextResponse.json(res.data, { status: res.status });
   } catch (e: any) {
     if (e.response) {

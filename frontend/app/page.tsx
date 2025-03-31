@@ -6,31 +6,25 @@ import axios from "axios";
 export default function Home() {
   const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    const getUserInfo = async () => {
-      try {
-        // const response = await axios.get("/api/user")
-        const response = await axios.get("/api/user", {
-          withCredentials: true,
-        });
-        console.log("RESPONSE : ", response);
-        // setUser(response.data.username)
-      } catch (e) {
-        console.log("Could not get user details", e);
-      }
+  const getUserInfo = async () => {
+    try {
+      // const response = await axios.get("/api/user")
+      const response = await axios.get("/api/user", {
+        withCredentials: true,
+      });
+      console.log("RESPONSE : ", response);
+      // setUser(response.data.username)
+    } catch (e) {
+      console.log("Could not get user details", e);
+    }
+  };
 
-      //   try {
-      //     const response = await axios.get(`http://127.0.0.1:8000/api/users/user-info/`, {withCredentials: true})
-      //     console.log("LOGGED IN USER : ", response.data)
-      //     return response.data;
-      //   }
-      //     catch (e) {
-      //     throw new Error("User details fetch failed")
-      // }
-    };
+  // if session_key is present in the URL then fetch auth cookies from backend
+  useEffect(() => {
 
     getUserInfo();
   }, []);
+
   return (
     <div>
       <h1>Welcome to ARRAIV </h1>
@@ -40,6 +34,10 @@ export default function Home() {
       >
         Progress
       </a>
+
+      {/* <button onClick={handleLogout} >
+        LOGOUT
+      </button> */}
     </div>
   );
 }

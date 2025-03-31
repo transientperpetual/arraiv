@@ -6,8 +6,8 @@ export async function GET(req:NextRequest) {
     try{
     const cookieStore = await cookies();
         const accessToken : any = cookieStore.get("arraiv_at")
-        console.log("BODY : ", accessToken)
-        const res = await axios.get(`${process.env.BACKEND}/user`,
+        
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND}/user`,
         {   headers: {
             Cookie: `arraiv_at=${accessToken.value}`,
           }})
