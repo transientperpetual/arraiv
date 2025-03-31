@@ -21,6 +21,11 @@ import environ
 from rest_framework_simplejwt.tokens import RefreshToken
 from .authentication import CookieJWTAuthentication
 from django.views.decorators.csrf import csrf_exempt
+import secrets
+from django.core.cache import cache
+from django.shortcuts import redirect
+import urllib.parse
+import json
 
 # Initialize environ
 env = environ.Env(
@@ -32,8 +37,8 @@ User = get_user_model()
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
     return {
-        'refresh': str(refresh),
-        'access': str(refresh.access_token),
+        'arraiv_at_src': str(refresh.access_token),
+        'arraiv_rt_src': str(refresh),
     }
 
 class UserRegistrationView(CreateAPIView):
@@ -124,26 +129,33 @@ class ResendOTPView(APIView):
     
     
 def google_login(request):
+    state = secrets.token_urlsafe(32)  # Generate secure state
+    cache.set(f"oauth_state:{state}", True, timeout= 180)  # Store state for 3 min
     base_url = "https://accounts.google.com/o/oauth2/v2/auth"
     params = {
         "client_id": env("GOOGLE_CLIENT_ID"),
         "response_type": "code",
         "scope": "openid email profile",
         "redirect_uri": request.build_absolute_uri('/google/callback/'),
-        "state": "random_state_string",  # Protect against CSRF
+        "state": state,  # Protect against CSRF
         "access_type": "offline",
         # "prompt": "consent",
     }
-    print("new url : ", f"{base_url}?{urlencode(params)}")
     return redirect(f"{base_url}?{urlencode(params)}")
 
 
 
 def google_callback(request):
+    #verify the state 
+    state = request.GET.get("state")
+
+    if not cache.get(f"oauth_state:{state}"):
+        return JsonResponse({"error": "Invalid OAuth state. Please try again"}, status=400)
+    
     code = request.GET.get('code')
     
     if not code:
-        return render(request, 'error.html', {"message": "No code provided."})
+         return JsonResponse({"error": "Couldn't get code for Google"}, status=400)
 
     # Exchange authorization code for access token
     token_response = requests.post(
@@ -160,7 +172,7 @@ def google_callback(request):
     ).json()
 
     if "error" in token_response:
-        return render(request, 'error.html', {"message": token_response.get("error_description")})
+         return JsonResponse({"error": "Error while exchanginf Google code for token"}, status=400)
 
     access_token = token_response.get('access_token')
 
@@ -175,7 +187,7 @@ def google_callback(request):
 
     #Add a template here.
     if not email:
-        return render(request, 'error.html', {"message": "Email not provided by Google."})
+         return JsonResponse({"error": "Couldn't get user email from Google"}, status=400)
 
     # Create or update user
     user, created = ArraivUser.objects.update_or_create(
@@ -186,15 +198,87 @@ def google_callback(request):
     # Generate JWT tokens
     tokens = get_tokens_for_user(user)
 
-    return JsonResponse({
-        "message": "Google login successful",
-        "access_token": tokens['access'],
-        "refresh_token": tokens['refresh'],
-        "user": {
-            "email": user.email,
-            "first_name": user.first_name,
-        },
-    })
+    # Redirect to Next.js API to handle cookie setting
+    next_server_url = env("NEXT_SERVER_URL") + "/register"
+
+    # Generate a session token (random key)
+    session_key = secrets.token_urlsafe(32)
+    cache.set(f"session:{session_key}", tokens, timeout=30)
+
+    # csrf_token = secrets.token_urlsafe(16)
+
+    # Redirect to Next.js register page with session key and csrf token
+    # return redirect(f"{next_server_url}?session={session_key}&csrf={csrf_token}")
+    return redirect(f"{next_server_url}?session={session_key}")
+
+    # response = requests.post(next_server_url, json=tokens)
+
+    # if response.status_code == 200:
+    #     return JsonResponse({"message": "User registered successfully"})
+    # else:
+    #     return JsonResponse({"error": "Failed to register user with Google"}, status=500)
+
+    # response = redirect(next_server_url)
+
+    # response.set_cookie(key="arraiv_at", value=tokens["arraiv_at_src"],
+    #                         httponly=True, secure=True, samesite="None")
+            
+    # response.set_cookie(key="arraiv_rt", value=str(tokens["arraiv_rt_src"]),
+    #                     httponly=True, secure=True, samesite="None")
+
+    # response.set_cookie(
+    #     "arraiv_at", tokens["arraiv_at_src"],
+    #     httponly=True, secure=True, samesite="None",
+    #     path="/", max_age=900
+    # )
+    # response.set_cookie(
+    #     "arraiv_rt", tokens["arraiv_rt_src"],
+    #     httponly=True, secure=True, samesite="None",
+    #     path="/", max_age=604800
+    # )
+
+    # return response
+
+
+    # return JsonResponse({
+    #     "message": "Google login successful",
+    #     "access_token": tokens['access'],
+    #     "refresh_token": tokens['refresh'],
+    #     "user": {
+    #         "email": user.email,
+    #         "first_name": user.first_name,
+    #     },
+    # })
+
+# TODO add request limiters here
+@csrf_exempt
+def exchange_token(request):
+    session_key = request.headers.get("Authorization")
+    if session_key is None:
+        return JsonResponse({"error": "Missing session  key"}, status=400)
+
+    # session_data = cache.get(temp_token)
+    session_data = cache.get(f"session:{session_key}")
+
+    if not session_data:
+        return JsonResponse({"error": "Invalid token"}, status=400)
+
+    try:
+        cache.delete(session_key)  # Invalidate temp session
+    except Exception as e:
+        print("Error deleting token from cache:", e)
+
+    return JsonResponse(session_data)
+
+    # return JsonResponse({
+    #     "message": "Google login successful",
+    #     "access_token": tokens['access'],
+    #     "refresh_token": tokens['refresh'],
+    #     "user": {
+    #         "email": user.email,
+    #         "first_name": user.first_name,
+    #     },
+    # })
 
     
 class CustomTokenObtainPairView(TokenObtainPairView):

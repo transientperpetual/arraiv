@@ -14,6 +14,7 @@ urlpatterns = [
     path('verifytoken/', TokenVerifyView.as_view(), name='token_verify'),
     
     path('google/login/', views.google_login, name='google_login'),
+    path('exchange-token/', views.exchange_token, name='exchange_token'),
     
     path("logout/", views.LogoutView.as_view(), name="logout"),
     path("test/", views.TestView.as_view(), name="test-view"),

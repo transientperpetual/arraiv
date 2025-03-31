@@ -4,22 +4,30 @@ import { headers, cookies } from "next/headers";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await req.json();
+    const { email, password, arraiv_at_src, arraiv_rt_src} = await req.json();
+    console.log("TOKEN GOOGLE : ", arraiv_at_src)
 
-    //TODO : handle this on page.tsx
-    // Validate input 
-    if (!email || !password) {
-      return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
+    if (arraiv_at_src) {
+      console.log("TOKEN GOOGLE : ", arraiv_at_src)
     }
+      
+     else {
 
-    const res = await axios.post(`${process.env.BACKEND}/token/`, {email, password})
-    // Extract tokens from the response
-    const { arraiv_at_src, arraiv_rt_src } = res.data;
-
-    if (!arraiv_at_src || !arraiv_rt_src) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+      //TODO : handle this on page.tsx
+      // Validate input 
+      if (!email || !password) {
+        return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
+      }
+      
+      const res = await axios.post(`${process.env.BACKEND}/token/`, {email, password})
+      // Extract tokens from the response
+      const { arraiv_at_src, arraiv_rt_src } = res.data;
+      
+      if (!arraiv_at_src || !arraiv_rt_src) {
+        return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+      }
     }
-
+      
     // console.log("res: ", res)
     
     // Set httpOnly cookies in client
@@ -41,7 +49,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Send response to client
-    return NextResponse.json(res.data, { status: res.status });
+    return NextResponse.json({message: "User logged in successfully"}, { status: 200 });
 
   } catch (error) {
     return NextResponse.json({ error: "Could not login" }, { status: 500 });
