@@ -1,10 +1,8 @@
 import axios from "axios";
-import { headers, cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   const session_key = req.headers.get("Authorization");
-  console.log("Session key ", session_key);
 
   const res = await axios.post(
     `${process.env.NEXT_PUBLIC_BACKEND}/obtain-token/`,

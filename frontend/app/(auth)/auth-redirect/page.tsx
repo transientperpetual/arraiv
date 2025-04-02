@@ -21,9 +21,8 @@ export default function AuthRedirect() {
           },
         }
       );
-      console.log("Response : ", res.data);
-      // redirect to user page
 
+      // redirect to user page
       router.replace("/")
     } catch (e: any) {
       if (e.response) {

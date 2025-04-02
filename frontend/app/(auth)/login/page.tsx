@@ -23,19 +23,9 @@ export default function LoginPage() {
         { withCredentials: true }
       );
 
-      //TODO:
-      //if user otp is not verified then refirect them to otp verification page with email prefilled.
-      // if (true){
-      // 	const queryParams = new URLSearchParams({ email }).toString();
-      // 	router.push(`/verify-otp?${queryParams}`);
-      // }
-      console.log("Response : ", res);
       router.push("/");
     } catch (e) {
       console.log("Err logging in : ", e);
-      //   router.push("/");
-      // if otp is not verified then redirect to otp verify page
-      // if email is not registered then redirect to register page
     }
   };
 
