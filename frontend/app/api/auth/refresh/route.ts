@@ -3,16 +3,26 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
 export async function GET(req: NextRequest) {
-    try {
-
+  try {
     const cookieStore = await cookies();
     const refreshToken: any = cookieStore.get("arraiv_rt");
+    const nonce = cookieStore.get("refresh_nonce")?.value;
 
-    
+    // Validate nonce
+    if (!nonce || !refreshToken) {
+      return NextResponse.json(
+        { error: "Unauthorized: Missing nonce or token" },
+        { status: 403 }
+      );
+    }
+
+    // Clear the nonce cookie immediately to prevent reuse
+    cookieStore.delete("refresh_nonce");
+
     const res = await axios.post(
       `${process.env.NEXT_PUBLIC_BACKEND}/token/refresh/`,
-      { "refresh": refreshToken.value },
-      { withCredentials: true } 
+      { refresh: refreshToken.value },
+      { withCredentials: true }
     );
 
     const { access, refresh } = res.data;
@@ -47,6 +57,9 @@ export async function GET(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    return NextResponse.json({ error: "Could not refresh auth" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Could not refresh auth" },
+      { status: 500 }
+    );
   }
 }

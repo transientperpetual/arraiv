@@ -12,10 +12,10 @@ export default function FetchTokenPairPage() {
       try {
         // Exchange refresh token for new access token
         const res = await axios.get("/api/auth/refresh");
-       
+
         router.replace("/");
       } catch (error) {
-        console.error("Could not refresh user session", error);
+        console.log("Could not refresh user session", error);
         // Redirect to login if refresh fails
         router.replace("/login");
       }
