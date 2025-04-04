@@ -21,7 +21,6 @@ export default function Home() {
 
   // if session_key is present in the URL then fetch auth cookies from backend
   useEffect(() => {
-
     getUserInfo();
   }, []);
 

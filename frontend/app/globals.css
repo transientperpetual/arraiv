@@ -1,26 +1,32 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-screen-bg: #121212;
+  --color-background: #FBFBFA;
+  --color-black-primary: #4A4A4A;
+  --color-black-secondary: #626262;
+  --color-blackest: #060606;
+  --color-black-stroke: #3D3D3D;
+  --color-white-primary: #DDDDDD;
+  --color-white-secondary: #CCCCCC;
+  --color-test: #00FF8F;
+
+  /* --font-sans: Poppins;
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Ensure the app takes full viewport height */
+html, body, #__next {
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
+/* Prevent zooming on mobile
+@viewport {
+  width: device-width;
+  initial-scale: 1.0;
+  maximum-scale: 1.0;
+  user-scalable: no;
+} */
