@@ -1,4 +1,3 @@
-from django.shortcuts import render
 import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -12,12 +11,12 @@ def arraiv_llm(request):
         try:
             data = json.loads(request.body)
             query = data.get('query')
+            model = data.get('infModel')
 
-            local_llm(query)
-
+            inferernce = local_llm(query, model)
 
             # You can process/store data here
-            return JsonResponse({'message': f'Query recieved '}, status=200)
+            return JsonResponse({'Inference': inferernce}, status=200)
         
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
