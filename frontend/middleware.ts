@@ -7,6 +7,7 @@ const publicRoutes = [
   "/logout",
   "/auth-redirect",
   "/refresh",
+  "/assistant",
 ];
 
 export async function middleware(request: NextRequest) {
@@ -24,6 +25,7 @@ export async function middleware(request: NextRequest) {
         function generateNonce() {
           const timestamp = Date.now().toString(36); // Base-36 timestamp
           const random = Math.random().toString(36).substring(2, 8); // Random string
+          console.log("NONCE : ", `${timestamp}-${random}`);
           return `${timestamp}-${random}`; // e.g., "1j4k5l-abc123"
         }
 

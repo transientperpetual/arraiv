@@ -147,7 +147,7 @@ export default function RegisterPage() {
         </div>
 
         <div className="">
-          <Button onClick="handleLogin" variant="tertiary">
+          <Button onClick={handleLogin} variant="tertiary">
             Login
           </Button>
         </div>

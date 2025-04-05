@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface InputProps {
   placeholder?: string;
@@ -10,7 +10,7 @@ interface InputProps {
 
 const Input: React.FC<InputProps> = ({
   placeholder,
-  type = 'text',
+  type = "text",
   value,
   onChange,
   disabled = false,
