@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     "rest_framework",
     "users",
+    "healthdevice",
     'rest_framework_simplejwt',
     "django.contrib.admin",
     "django.contrib.auth",

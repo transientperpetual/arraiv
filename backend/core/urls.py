@@ -6,6 +6,7 @@ from users.views import google_callback
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include("users.urls")),
+    path('api/', include("healthdevice.urls")),
     path('google/callback/', google_callback, name='google_callback'),
 ]
 
