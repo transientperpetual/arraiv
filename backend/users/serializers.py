@@ -7,7 +7,19 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 class ArraivUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = ArraivUser
-        fields = ['first_name', 'email', 'password']
+        fields = [
+            'id',
+            'first_name',
+            'email',
+            'is_active',
+            'is_staff',
+            'health_device_status',
+            'is_email_verified',
+            'date_joined',
+            'otp',
+            'otp_created_at'
+        ]
+        # fields = ['first_name', 'email', 'password']
         extra_kwargs = {"password": {"write_only": True}}
 
     def create(self, validated_data):

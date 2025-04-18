@@ -1,7 +1,8 @@
+import email
 from django.shortcuts import render
 from .models import ArraivUser
 from .serializers import ArraivUserSerializer, RegisterUserSerialzier
-from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView
+from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView, RetrieveAPIView
 from rest_framework.views import APIView
 from django.utils.timezone import now
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -249,10 +250,24 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
 
 class ArraivUserList(ListAPIView):
-    queryset = ArraivUser.objects.all()
+    # queryset = ArraivUser.objects.all()
     serializer_class = ArraivUserSerializer
     authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        print("User:", user)
+        return ArraivUser.objects.filter(first_name=user) 
+
+class CurrentArraivUserView(RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ArraivUserSerializer
+    authentication_classes = [CookieJWTAuthentication]
+
+    def get_object(self):
+        print("Current user:", self.request.user)
+        return self.request.user
 
 class ArraivUserRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView):
     queryset = ArraivUser.objects.all()
@@ -263,23 +278,20 @@ class ArraivUserRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView):
 
 
 class LogoutView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
-    def post(self, request):
+    def get(self, request):
         try:
-            refresh_token = request.COOKIES.get("refresh_token")
-            if not refresh_token:
+            arraiv_rt = request.COOKIES.get("arraiv_rt")
+            if not arraiv_rt:
                 return Response({"error": "No refresh token"}, status=400)
 
             # Blacklist the token
-            token = RefreshToken(refresh_token)
+            token = RefreshToken(arraiv_rt)
             token.blacklist()
 
             # Clear cookies
-            response.delete_cookie("access_token")
-            response.delete_cookie("refresh_token")
-            response = Response({"message": "Logged out successfully"}, status=200)
-
+            response = Response({"message": "Refresh token blacklisted"}, status=200)
             return response
         except Exception as e:
             return Response({"error": "Invalid token or already blacklisted"}, status=400)

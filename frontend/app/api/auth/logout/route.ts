@@ -1,24 +1,50 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import axios from "axios";
 
-export async function POST() {
+export async function GET() {
   try {
     // Send logout request to Django backend
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/users/logout/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
+    console.log("Logging out from Django backend");
+    const cookieStore = await cookies();
+    const refreshToken: any = cookieStore.get("arraiv_rt");
+
+    // Blacklist the refresh token
+    const res: any = await axios.get(
+      `${process.env.NEXT_PUBLIC_BACKEND}/logout`,
+      {
+        headers: {
+          Cookie: `arraiv_rt=${refreshToken.value}`,
+        },
+        withCredentials: true,
+      }
+    );
+
+    console.log("Logout response from backend:", res.data);
+
+    // Clear the cookies
+    const response = NextResponse.json(
+      { message: "User logged out" },
+      { status: 200 }
+    );
+
+    response.cookies.set("arraiv_at", "", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      path: "/",
+      maxAge: 0, // Expire immediately
     });
 
-    // Get response from Django
-    const data = await res.json();
-    console.log("Response for django : ", data)
+    response.cookies.set("arraiv_rt", "", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      path: "/",
+      maxAge: 0, // Expire immediately
+    });
 
-    if (!res.ok) {
-      return NextResponse.json({ error: data.non_field_errors || "Couldn't log out" }, { status: res.status });
-    }
-
-    // Return success response
-    return NextResponse.json({ message: "Logout successful" }, { status: 200 });
+    return response;
   } catch (error) {
     return NextResponse.json({ error: "Could not logout" }, { status: 500 });
   }

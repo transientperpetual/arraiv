@@ -26,6 +26,7 @@ class ArraivUser(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_email_verified = models.BooleanField(default=False)
+    health_device_status = models.CharField(max_length=20, default="absent")
     date_joined = models.DateTimeField(auto_now_add=True, null=True)
     otp = models.CharField(max_length=6, blank=True, null=True)
     otp_created_at = models.DateTimeField(blank=True, null=True)  

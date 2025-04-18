@@ -2,6 +2,8 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.conf import settings
 
 class CookieJWTAuthentication(JWTAuthentication):
+
+    # runs for every request marked IsAuthenticated
     def authenticate(self, request):
         try:
             header = self.get_header(request)
@@ -10,7 +12,6 @@ class CookieJWTAuthentication(JWTAuthentication):
                 raw_token = request.COOKIES.get('arraiv_at')
             else:
                 raw_token = self.get_raw_token(header)
-            
             
             if raw_token is None:
                 return None 

@@ -8,7 +8,7 @@ urlpatterns = [
     path('verify-otp/', views.VerifyOTPView.as_view(), name='verify-otp'),
     path('resend-otp/', views.ResendOTPView.as_view(), name='resend-otp'),
     path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('user/', views.ArraivUserList.as_view()),
+    path('user/', views.CurrentArraivUserView.as_view()),
     path('user/<int:pk>', views.ArraivUserRetrieveUpdateDestroy.as_view()),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('verifytoken/', TokenVerifyView.as_view(), name='token_verify'),

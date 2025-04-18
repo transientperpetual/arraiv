@@ -6,6 +6,7 @@ class HealthDevice(models.Model):
     user = models.OneToOneField(ArraivUser, on_delete=models.CASCADE, primary_key=True, related_name="health_device",)
     device_brand = models.CharField(max_length=50)
     device_name = models.CharField(max_length=100)
+    display_name = models.CharField(max_length=150)
     token_string = models.TextField()
     
     def __str__(self):

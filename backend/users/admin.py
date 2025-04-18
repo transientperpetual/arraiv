@@ -4,8 +4,8 @@ from django.utils.translation import gettext_lazy as _
 from .models import ArraivUser
 
 class ArraivUserAdmin(UserAdmin):
-    ordering = ['first_name']
-    list_display = ['email', 'first_name', 'is_email_verified', 'is_staff', 'is_active','date_joined']
+    ordering = ['date_joined']
+    list_display = ['email', 'first_name', 'is_email_verified','health_device_status', 'is_staff', 'is_active','date_joined']
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         (_('Personal Info'), {'fields': ('first_name',)}),

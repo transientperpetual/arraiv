@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 
 const publicRoutes = [
+  "/",
   "/login",
   "/register",
   "/verify-otp",
@@ -12,9 +13,9 @@ const publicRoutes = [
 export async function middleware(request: NextRequest) {
   try {
     const { pathname } = request.nextUrl;
-    const isPublicRoute = publicRoutes.some((route) =>
-      pathname.startsWith(route)
-    );
+    const isPublicRoute = publicRoutes.some((route) => {
+      return pathname === route || pathname.startsWith(`${route}/`);
+    });
     const accessToken = request.cookies.get("arraiv_at")?.value;
 
     if (!isPublicRoute && !accessToken) {
@@ -24,7 +25,7 @@ export async function middleware(request: NextRequest) {
         function generateNonce() {
           const timestamp = Date.now().toString(36); // Base-36 timestamp
           const random = Math.random().toString(36).substring(2, 8); // Random string
-          return `${timestamp}-${random}`; // e.g., "1j4k5l-abc123"
+          return `${timestamp}-${random}`;
         }
 
         const nonce = generateNonce();
@@ -40,11 +41,8 @@ export async function middleware(request: NextRequest) {
           secure: true,
           sameSite: "none",
           path: "/",
-          maxAge: 60, // Expires in 60 seconds
+          maxAge: 60,
         });
-
-        // Optionally pass refreshToken or nonce in URL (less secure, but simpler)
-        // response.nextUrl.searchParams.set('nonce', nonce);
 
         return response;
       }
@@ -57,8 +55,7 @@ export async function middleware(request: NextRequest) {
     }
 
     if (accessToken && pathname === "/login") {
-      // TODO: redirect to user dashboard
-      return NextResponse.redirect(new URL("/", request.url));
+      return NextResponse.redirect(new URL("/user/dashboard", request.url));
     }
 
     return NextResponse.next();
