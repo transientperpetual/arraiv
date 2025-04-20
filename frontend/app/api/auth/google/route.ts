@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     secure: true,
     sameSite: "none", // TODO : set to strict in prod?
     path: "/",
-    maxAge: 900, // Expires in 15 minutes
+    maxAge: 3600, // Expires in 15 minutes
   });
 
   response.cookies.set("arraiv_rt", tokens.arraiv_rt_src, {

@@ -9,6 +9,6 @@ class HealthDeviceAdmin(admin.ModelAdmin):
 
 @admin.register(DailyMetrics)
 class DailyMetricsAdmin(admin.ModelAdmin):
-    list_display = ["device", "date", "steps", "calories", "sleep_score"]
+    list_display = ["device", "date", "steps", "calories", "sleep_score", "sleep_hrv", "stress"]
     list_filter = ["date", "device"]
     search_fields = ["device__user__username"]

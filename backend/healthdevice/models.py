@@ -18,11 +18,16 @@ class DailyMetrics(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     
     steps = models.PositiveIntegerField(null=True, blank=True)
-    calories = models.PositiveIntegerField(null=True, blank=True)
+    calories = models.FloatField(null=True, blank=True)
     body_battery = models.PositiveIntegerField(null=True, blank=True)
     sleep_score = models.PositiveIntegerField(null=True, blank=True)
-    
-    sleep_hrv = models.PositiveIntegerField(null=True, blank=True)
+    sleep_hrv = models.FloatField(null=True, blank=True)
+    sleep_deep = models.PositiveIntegerField(null=True, blank=True)
+    sleep_rem = models.PositiveIntegerField(null=True, blank=True)
+    sleep_light = models.PositiveIntegerField(null=True, blank=True)
+    sleep_stress = models.FloatField(null=True, blank=True)
+    resting_heart_rate = models.PositiveIntegerField(null=True, blank=True)
+
     weekly_avg_hrv = models.PositiveIntegerField(null=True, blank=True)
     hrv_baseline_low = models.PositiveIntegerField(null=True, blank=True)
     hrv_baseline_high = models.PositiveIntegerField(null=True, blank=True)
@@ -37,8 +42,7 @@ class DailyMetrics(models.Model):
     medium_stress = models.PositiveIntegerField(null=True, blank=True)
     high_stress = models.PositiveIntegerField(null=True, blank=True)
     stress_status = models.CharField(max_length=30, null=True, blank=True)
-    
-    vo2max = models.PositiveIntegerField(null=True, blank=True)
+
     
     
     class Meta:
