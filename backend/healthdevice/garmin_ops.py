@@ -1,10 +1,14 @@
-from datetime import datetime
+import datetime
+from django.utils.timezone import make_aware
+from xml.dom.domreg import registered
 import garth
 import healthdevice
 from .models import DailyMetrics, HealthDevice
 from .serializers import DailyMetricsSerializer, HealthDeviceSerializer
 from rest_framework.response import Response
 from rest_framework import status
+
+today = datetime.date.today()
 
 def garmin_registration(email, password):
     try:
@@ -18,10 +22,14 @@ def garmin_registration(email, password):
         device_data = garth.connectapi(url)
         
         device_name = device_data["RegisteredDevices"][0]["displayName"]
-        display_name = garth.profile["displayName"]
+        epoch_ms  = device_data["RegisteredDevices"][0]["registeredDate"]
+        registered_date = make_aware(datetime.datetime.fromtimestamp(epoch_ms / 1000.0))
         
-        print("Garmin authentication successful.")
-        return "GARMIN", device_name, display_name, token_string
+        # comment out profile_image_uuid to avoid error in gath init.py
+        display_name = garth.UserProfile.get().display_name
+        
+        print("Garmin authentication successful.",device_name, registered_date, display_name)
+        return device_name, "GARMIN", registered_date, display_name, token_string
     except Exception as e:
         print(f"Error during Garmin authentication: {e}")
         return None, None, None
@@ -34,6 +42,7 @@ def get_garmin(user):
 
     # Serialize the device data
     serializer = HealthDeviceSerializer(device)
+    print("DATA", serializer.data["registered_date"])
     return serializer.data
 
 
