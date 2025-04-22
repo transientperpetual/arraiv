@@ -4,8 +4,9 @@ from users.models import ArraivUser
 
 class HealthDevice(models.Model):
     user = models.OneToOneField(ArraivUser, on_delete=models.CASCADE, primary_key=True, related_name="health_device",)
-    device_brand = models.CharField(max_length=50)
     device_name = models.CharField(max_length=100)
+    device_brand = models.CharField(max_length=50)
+    registered_date = models.DateTimeField()
     display_name = models.CharField(max_length=150)
     token_string = models.TextField()
     
@@ -20,6 +21,8 @@ class DailyMetrics(models.Model):
     steps = models.PositiveIntegerField(null=True, blank=True)
     calories = models.FloatField(null=True, blank=True)
     body_battery = models.PositiveIntegerField(null=True, blank=True)
+    
+    sleep_duration = models.PositiveIntegerField(null=True, blank=True)
     sleep_score = models.PositiveIntegerField(null=True, blank=True)
     sleep_hrv = models.FloatField(null=True, blank=True)
     sleep_deep = models.PositiveIntegerField(null=True, blank=True)
@@ -48,6 +51,7 @@ class DailyMetrics(models.Model):
     class Meta:
         # Ensure only one entry per device per date
         unique_together = ["device", "date"]
+        get_latest_by = "date"
         
         indexes = [
             models.Index(fields=["device"]),  # Index on device (foreign key)

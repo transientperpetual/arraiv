@@ -1,6 +1,6 @@
 from django.urls import path
 from healthdevice import views
-from .garmin_ops import sync_garmin_historical_data
+from .garmin_ops import sync_garmin_data
 
 
 urlpatterns = [

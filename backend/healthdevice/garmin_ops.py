@@ -46,231 +46,123 @@ def get_garmin(user):
     return serializer.data
 
 #this function will sync all garmin device data under the model DailyMetrics from the date of device registration to today.
-def sync_garmin_historical_data(garmin_device, onBoard=False):
+#and
+#this function will sync garmin from the last date of sync to T-1.
+#example, if today is 12th, then sync garmin data for 11th (it will include all activities of 11th and the sleep you entered 11th with)
+#to be scheduled to run everyday at 8am.
+def sync_garmin_data(garmin_device, onBoard=False):
 
     garth.resume(garmin_device.token_string)
-    print("DEV : ", garmin_device)
+    #sync fresh
     if onBoard:
-        date_pointer = garmin_device.registered_date
+        date_pointer = garmin_device.registered_date.date()
+    #sync latest
     else:
-        print("syncing")
         #get the last date of sync and set it + 1 as date_pointer.
         date_pointer = garmin_device.metrics.latest('date').date + datetime.timedelta(days=1)
-    
-    print("DATE POINTER", date_pointer)
     
     days = 0
 
     #data to be fetched until T-1 day. (because sleep and hrv are null and other data are currently getting measured for the day)
-    # while date_pointer.date() < today:
-    #     days += 1
+    while date_pointer < today:
+        days += 1
 
-    #     #daily summary metrics
-    #     daily_summary_url = f'/usersummary-service/usersummary/daily/{garmin_device.display_name}'
-    #     daily_summary_params = {"calendarDate": str(date_pointer.date().isoformat())}
-    #     daily_summary_data = garth.connectapi(daily_summary_url, params=daily_summary_params)
+        #daily summary metrics
+        daily_summary_url = f'/usersummary-service/usersummary/daily/{garmin_device.display_name}'
+        daily_summary_params = {"calendarDate": str(date_pointer.isoformat())}
+        daily_summary_data = garth.connectapi(daily_summary_url, params=daily_summary_params)
 
-    #     #sleep data
-    #     sleep_url = f"/wellness-service/wellness/dailySleepData/{garmin_device.display_name}"
-    #     sleep_params = {"date": str(date_pointer.date().isoformat()), "nonSleepBufferMinutes": 60}
-    #     sleep_data = garth.connectapi(sleep_url, params=sleep_params)
+        #TODO : your day is presumed to start with sleep and sleep hrv, so will need to fetch sleep and hrv for T and assign it to T-1 data.
+        #sleep data
+        sleep_url = f"/wellness-service/wellness/dailySleepData/{garmin_device.display_name}"
+        sleep_params = {"date": str(date_pointer.isoformat()), "nonSleepBufferMinutes": 60}
+        sleep_data = garth.connectapi(sleep_url, params=sleep_params)
 
-    #     try:
-    #         avgOvernightHrv = sleep_data["avgOvernightHrv"]
-    #     except KeyError:
-    #         avgOvernightHrv = None
+        try:
+            avgOvernightHrv = sleep_data["avgOvernightHrv"]
+        except KeyError:
+            avgOvernightHrv = None
         
-    #     try:
-    #         avgSleepStress = sleep_data["dailySleepDTO"]["avgSleepStress"]
-    #     except KeyError:
-    #         avgSleepStress = None
+        try:
+            avgSleepStress = sleep_data["dailySleepDTO"]["avgSleepStress"]
+        except KeyError:
+            avgSleepStress = None
 
-    #     try:
-    #         restingHeartRate = sleep_data["restingHeartRate"]
-    #     except KeyError:
-    #         restingHeartRate = None
+        try:
+            restingHeartRate = sleep_data["restingHeartRate"]
+        except KeyError:
+            restingHeartRate = None
 
-    #     sleep_score = (
-    #             sleep_data.get("dailySleepDTO", {})
-    #           .get("sleepScores", {})
-    #           .get("overall", {})
-    #           .get("value")
-    #     )
+        sleep_score = (
+                sleep_data.get("dailySleepDTO", {})
+              .get("sleepScores", {})
+              .get("overall", {})
+              .get("value")
+        )
 
-    #     #hrv data
-    #     hrv_url = f"/hrv-service/hrv/{str(date_pointer.date().isoformat())}"
-    #     hrv_data = garth.connectapi(hrv_url)
+        #hrv data
+        hrv_url = f"/hrv-service/hrv/{str(date_pointer.isoformat())}"
+        hrv_data = garth.connectapi(hrv_url)
 
-    #     def safe_get(data, *keys, default=None):
-    #         """Safely access nested dictionary keys."""
-    #         if data is None:
-    #             return default
+        def safe_get(data, *keys, default=None):
+            """Safely access nested dictionary keys."""
+            if data is None:
+                return default
             
-    #         current = data
-    #         for key in keys:
-    #             if not isinstance(current, dict):
-    #                 return default
-    #             current = current.get(key, default)
-    #             if current is None:
-    #                 return default
-    #         return current
+            current = data
+            for key in keys:
+                if not isinstance(current, dict):
+                    return default
+                current = current.get(key, default)
+                if current is None:
+                    return default
+            return current
 
-    #     daily_metric = {
-    #         "device": garmin_device,
-    #         "date":date_pointer.date(),
-    #         "steps":daily_summary_data["totalSteps"],
-    #         "calories":daily_summary_data["totalKilocalories"],
-    #         "body_battery":daily_summary_data["bodyBatteryHighestValue"],
+        daily_metric = {
+            "device": garmin_device,
+            "date":date_pointer,
+            "steps":daily_summary_data["totalSteps"],
+            "calories":daily_summary_data["totalKilocalories"],
+            "body_battery":daily_summary_data["bodyBatteryHighestValue"],
             
-    #         "sleep_duration":daily_summary_data["sleepingSeconds"],
-    #         "sleep_score":sleep_score,
-    #         "sleep_hrv":avgOvernightHrv,
-    #         "sleep_deep":sleep_data["dailySleepDTO"]["deepSleepSeconds"],
-    #         "sleep_rem":sleep_data["dailySleepDTO"]["remSleepSeconds"],
-    #         "sleep_light":sleep_data["dailySleepDTO"]["lightSleepSeconds"],
-    #         "sleep_stress":avgSleepStress,
-    #         "resting_heart_rate":restingHeartRate,
+            "sleep_duration":daily_summary_data["sleepingSeconds"],
+            "sleep_score":sleep_score,
+            "sleep_hrv":avgOvernightHrv,
+            "sleep_deep":sleep_data["dailySleepDTO"]["deepSleepSeconds"],
+            "sleep_rem":sleep_data["dailySleepDTO"]["remSleepSeconds"],
+            "sleep_light":sleep_data["dailySleepDTO"]["lightSleepSeconds"],
+            "sleep_stress":avgSleepStress,
+            "resting_heart_rate":restingHeartRate,
             
-    #         # Safe dictionary access with get() method
-    #         "weekly_avg_hrv": safe_get(hrv_data, "hrvSummary", "weeklyAvg"),
-    #         "hrv_baseline_low": safe_get(hrv_data, "hrvSummary", "baseline", "balancedLow"),
-    #         "hrv_baseline_high": safe_get(hrv_data, "hrvSummary", "baseline", "balancedUpper"),
-    #         "hrv_status": safe_get(hrv_data, "hrvSummary", "status"),
+            # Safe dictionary access with get() method
+            "weekly_avg_hrv": safe_get(hrv_data, "hrvSummary", "weeklyAvg"),
+            "hrv_baseline_low": safe_get(hrv_data, "hrvSummary", "baseline", "balancedLow"),
+            "hrv_baseline_high": safe_get(hrv_data, "hrvSummary", "baseline", "balancedUpper"),
+            "hrv_status": safe_get(hrv_data, "hrvSummary", "status"),
 
-    #         "moderate_intensity_minutes":daily_summary_data["moderateIntensityMinutes"],
-    #         "vigorous_intensity_minutes":daily_summary_data["vigorousIntensityMinutes"],
+            "moderate_intensity_minutes":daily_summary_data["moderateIntensityMinutes"],
+            "vigorous_intensity_minutes":daily_summary_data["vigorousIntensityMinutes"],
             
-    #         "stress":daily_summary_data["averageStressLevel"],
-    #         "resting_stress":daily_summary_data["restStressDuration"],
-    #         "low_stress":daily_summary_data["lowStressDuration"],
-    #         "medium_stress":daily_summary_data["mediumStressDuration"],
-    #         "high_stress":daily_summary_data["highStressDuration"],
-    #         "stress_status":daily_summary_data["stressQualifier"],
-    #     }
+            "stress":daily_summary_data["averageStressLevel"],
+            "resting_stress":daily_summary_data["restStressDuration"],
+            "low_stress":daily_summary_data["lowStressDuration"],
+            "medium_stress":daily_summary_data["mediumStressDuration"],
+            "high_stress":daily_summary_data["highStressDuration"],
+            "stress_status":daily_summary_data["stressQualifier"],
+        }
 
-    #     serializer = DailyMetricsSerializer(data=daily_metric)
+        serializer = DailyMetricsSerializer(data=daily_metric)
 
-    #     if serializer.is_valid():
-    #         print("DAILY METRI _ ", daily_metric)
-    #         serializer.save()
+        if serializer.is_valid():
+            print("DAILY METRI _ ", daily_metric)
+            serializer.save()
+            #CLEAN THIS CODE
+            #CREATE A FUNCTION TO GRAB GARMIN DATA ONCE INITIAL SYNC IS COMPLETE (for the upcoming days)
+        else:
+            print("inv data : ", daily_metric)
 
-    #         #CLEAN THIS CODE
-    #         #CREATE A FUNCTION TO GRAB GARMIN DATA ONCE INITIAL SYNC IS COMPLETE (for the upcoming days)
-    #     else:
-    #         print("inv data : ", daily_metric)
+        date_pointer += datetime.timedelta(days=1)
 
-    #     date_pointer += datetime.timedelta(days=1)
-
-#this function will sync garmin from the last date of sync to T-1.
-#example, if today is 12th, then sync garmin data for 11th (it will include all activities of 11th and the sleep you entered 11th with)
-#to be scheduled to run everyday at 8am.
-def sync_garmin_latest(garmin_device):
-
-    garth.resume(garmin_device.token_string)
-
-    #get the last date of sync and set it + 1 as date_pointer.
-    date_pointer = garmin_device.metrics.latest('date').date + datetime.timedelta(days=1)
-    print("DATE POINTER", date_pointer)
-    # days = 0
-
-    # while date_pointer.date() < today:
-    #     days += 1
-
-    #     #daily summary metrics
-    #     daily_summary_url = f'/usersummary-service/usersummary/daily/{garmin_device.display_name}'
-    #     daily_summary_params = {"calendarDate": str(date_pointer.date().isoformat())}
-    #     daily_summary_data = garth.connectapi(daily_summary_url, params=daily_summary_params)
-
-    #     #sleep data
-    #     sleep_url = f"/wellness-service/wellness/dailySleepData/{garmin_device.display_name}"
-    #     sleep_params = {"date": str(date_pointer.date().isoformat()), "nonSleepBufferMinutes": 60}
-    #     sleep_data = garth.connectapi(sleep_url, params=sleep_params)
-
-    #     try:
-    #         avgOvernightHrv = sleep_data["avgOvernightHrv"]
-    #     except KeyError:
-    #         avgOvernightHrv = None
-        
-    #     try:
-    #         avgSleepStress = sleep_data["dailySleepDTO"]["avgSleepStress"]
-    #     except KeyError:
-    #         avgSleepStress = None
-
-    #     try:
-    #         restingHeartRate = sleep_data["restingHeartRate"]
-    #     except KeyError:
-    #         restingHeartRate = None
-
-    #     sleep_score = (
-    #             sleep_data.get("dailySleepDTO", {})
-    #           .get("sleepScores", {})
-    #           .get("overall", {})
-    #           .get("value")
-    #     )
-
-    #     #hrv data
-    #     hrv_url = f"/hrv-service/hrv/{str(date_pointer.date().isoformat())}"
-    #     hrv_data = garth.connectapi(hrv_url)
-
-    #     def safe_get(data, *keys, default=None):
-    #         """Safely access nested dictionary keys."""
-    #         if data is None:
-    #             return default
-            
-    #         current = data
-    #         for key in keys:
-    #             if not isinstance(current, dict):
-    #                 return default
-    #             current = current.get(key, default)
-    #             if current is None:
-    #                 return default
-    #         return current
-
-    #     daily_metric = {
-    #         "device": garmin_device,
-    #         "date":date_pointer.date(),
-    #         "steps":daily_summary_data["totalSteps"],
-    #         "calories":daily_summary_data["totalKilocalories"],
-    #         "body_battery":daily_summary_data["bodyBatteryHighestValue"],
-            
-    #         "sleep_duration":daily_summary_data["sleepingSeconds"],
-    #         "sleep_score":sleep_score,
-    #         "sleep_hrv":avgOvernightHrv,
-    #         "sleep_deep":sleep_data["dailySleepDTO"]["deepSleepSeconds"],
-    #         "sleep_rem":sleep_data["dailySleepDTO"]["remSleepSeconds"],
-    #         "sleep_light":sleep_data["dailySleepDTO"]["lightSleepSeconds"],
-    #         "sleep_stress":avgSleepStress,
-    #         "resting_heart_rate":restingHeartRate,
-            
-    #         # Safe dictionary access with get() method
-    #         "weekly_avg_hrv": safe_get(hrv_data, "hrvSummary", "weeklyAvg"),
-    #         "hrv_baseline_low": safe_get(hrv_data, "hrvSummary", "baseline", "balancedLow"),
-    #         "hrv_baseline_high": safe_get(hrv_data, "hrvSummary", "baseline", "balancedUpper"),
-    #         "hrv_status": safe_get(hrv_data, "hrvSummary", "status"),
-
-    #         "moderate_intensity_minutes":daily_summary_data["moderateIntensityMinutes"],
-    #         "vigorous_intensity_minutes":daily_summary_data["vigorousIntensityMinutes"],
-            
-    #         "stress":daily_summary_data["averageStressLevel"],
-    #         "resting_stress":daily_summary_data["restStressDuration"],
-    #         "low_stress":daily_summary_data["lowStressDuration"],
-    #         "medium_stress":daily_summary_data["mediumStressDuration"],
-    #         "high_stress":daily_summary_data["highStressDuration"],
-    #         "stress_status":daily_summary_data["stressQualifier"],
-    #     }
-
-    #     serializer = DailyMetricsSerializer(data=daily_metric)
-
-    #     if serializer.is_valid():
-    #         print("DAILY METRI _ ", daily_metric)
-    #         serializer.save()
-
-    #         #CLEAN THIS CODE
-    #         #CREATE A FUNCTION TO GRAB GARMIN DATA ONCE INITIAL SYNC IS COMPLETE (for the upcoming days)
-    #     else:
-    #         print("inv data : ", daily_metric)
-
-    #     date_pointer += datetime.timedelta(days=1)
 
 
 
@@ -279,31 +171,7 @@ def get_garmin_data(garmin_device):
     # url = "/web-gateway/device-info/primary-training-device"
     # device_data = garth.connectapi(url)
     print("DEVICE DATA", type(garmin_device.display_name))
-    # garth.resume(garmin_device.token_string)
 
-    #get device registration
-
-
-
-    deviceRegisteredDate = datetime.datetime.fromtimestamp(1734964851).date()
-    # date_pointer = datetime.datetime.fromtimestamp(1734964851).date()
-
-    # folder_path = "data/stats"  # you can change this
-
-    # while date_pointer <= today:
-    #     saveInJson(api.get_stats(date_pointer.isoformat()), f'stats_{date_pointer.isoformat()}', folder_path)
-    #     date_pointer += datetime.timedelta(days=1)
-    # print(f"Data saved")
-
-    #check the last sync date
-    
-    #fetch data for all days from last sync to current date.
-    
-    #fetch data from garmin
-    
-    #get till date stats
-    
-    #write data to table
     
      
     
