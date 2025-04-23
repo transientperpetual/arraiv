@@ -47,9 +47,9 @@ def get_garmin(user):
 
 #this function will sync all garmin device data under the model DailyMetrics from the date of device registration to today.
 #and
-#this function will sync garmin from the last date of sync to T-1.
-#example, if today is 12th, then sync garmin data for 11th (it will include all activities of 11th and the sleep you entered 11th with)
-#to be scheduled to run everyday at 8am.
+#this function will sync garmin from the last date of sync to T-1. 
+
+
 def sync_garmin_data(garmin_device, onBoard=False):
 
     garth.resume(garmin_device.token_string)
@@ -63,7 +63,6 @@ def sync_garmin_data(garmin_device, onBoard=False):
     
     days = 0
 
-    #data to be fetched until T-1 day. (because sleep and hrv are null and other data are currently getting measured for the day)
     while date_pointer < today:
         days += 1
 
@@ -164,7 +163,25 @@ def sync_garmin_data(garmin_device, onBoard=False):
         date_pointer += datetime.timedelta(days=1)
 
 
+#IMPORTANT : Updating the current date happens in two phases.
+    #1. We sync sleep and HRV data from T and save it in table and use it for our inference (along with T-1 daily summary) to generate the daily statement.
+    #2. We sync daily summary data from T on the next day at 8am into the table along with the sleep and HRV data (completing the table for T).
 
+def sync_garmin_data_today():
+    
+    print("")
+
+def sync_sleep_hrv_today():
+    #8am sync sleep and hrv for today (T).
+    print("")
+
+def sync_daily_summary_yesterdays():
+    #sleep and hrv are already present. just need to update the daily summary data. (8am T-1)
+    print("")
+
+def ready_for_inference():
+    #on T 8am ready for inference with sleep and hrv data from T and daily summary data from T-1.
+    print("")
 
 def get_garmin_data(garmin_device):
 

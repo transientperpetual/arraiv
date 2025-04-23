@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
-from .garmin_ops import garmin_registration, get_garmin, sync_garmin_data, sync_garmin_latest
+from .garmin_ops import garmin_registration, get_garmin, sync_garmin_data, sync_garmin_data_today
 from .models import HealthDevice
 
 from .serializers import HealthDeviceSerializer
@@ -62,6 +62,8 @@ class GarminDataSync(APIView):
     def get(self, request):
         print(request.user.health_device.registered_date)
         sync_garmin_data(request.user.health_device)
+        sync_garmin_data_today()
+
         # data = get_garmin(request.user)
         # print("RETRV : ", data)
         return JsonResponse({"message":"success"})
