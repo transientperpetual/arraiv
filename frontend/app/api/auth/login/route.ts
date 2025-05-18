@@ -12,7 +12,6 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-
     const res = await axios.post(
       `${process.env.NEXT_PUBLIC_BACKEND}/token/`,
       { email, password },

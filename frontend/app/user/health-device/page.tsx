@@ -24,10 +24,17 @@ export default function HealthDevice() {
         { email, password },
         { withCredentials: true }
       );
-
-      // router.push("/user/dashboard");
-    } catch (e) {
-      console.log("Err syncing garmin : ", e);
+      // mark user's health device status in local store
+      setUser({ health_device_status: "linked" });
+      router.push("/user/dashboard");
+    } catch (e: any) {
+      console.log("Err syncing garmin : ", e.response.data.error.detail);
+      if (
+        e.response.data.error.detail ==
+        "User already has a Garmin device linked."
+      ) {
+        router.replace("/user/dashboard");
+      }
     }
     setLoading(false);
   };

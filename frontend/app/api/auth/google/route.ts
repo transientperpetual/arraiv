@@ -4,6 +4,9 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req: NextRequest) {
   const session_key = req.headers.get("Authorization");
 
+console.log("LOGGING IN : ", process.env.NEXT_PUBLIC_BACKEND)
+
+
   const res = await axios.post(
     `${process.env.NEXT_PUBLIC_BACKEND}/obtain-token/`,
     {},

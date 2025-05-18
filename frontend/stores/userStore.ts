@@ -11,15 +11,21 @@ type ArraivUser = {
 
 type UserState = {
   user: ArraivUser | null;
-  setUser: (user: ArraivUser) => void;
+  setUser: (user: Partial<ArraivUser>) => void;
   clearUser: () => void;
 };
 
 export const useUserStore = create<UserState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
-      setUser: (user) => set({ user }),
+      setUser: (userPartial) =>
+        set({
+          user: {
+            ...get().user,   // keep existing values
+            ...userPartial, // override only what's passed
+          } as ArraivUser,
+        }),
       clearUser: () => set({ user: null }),
     }),
     {

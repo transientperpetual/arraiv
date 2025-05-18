@@ -1,12 +1,12 @@
 from django.urls import path
 from healthdevice import views
-from .garmin_ops import sync_garmin_data
+from .garmin_ops import primary_sync_garmin
 
 
 urlpatterns = [
     #user signing up / in with google
     path('device/register/garmin/', views.GarminRegistration.as_view(), name='garmin_registration'),
     path('device/garmin/', views.GarminDevice.as_view(), name='garmin_get'),
-    path('device/garmin/sync', views.GarminDataSync.as_view(), name='garmin_data_sync'),
+    path('device/garmin/sync', views.SyncGarminData.as_view(), name='garmin_data_sync'),
     # path("test/", views.TestView.as_view(), name="test-view"),
 ]
